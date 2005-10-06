@@ -3,7 +3,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-// Your Firebase configuration
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -13,10 +12,8 @@ const firebaseConfig = {
     appId: "YOUR_APP_ID"
 };
 
-
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 
-// Connect to Firestore
+
 export const db = getFirestore(app);
