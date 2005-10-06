@@ -1,0 +1,227 @@
+
+
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --background: #f4f6f8;
+    --white: #ffffff;
+    --text: #222222;
+    --border: #dddddd;
+    --danger: #dc2626;
+    --success: #16a34a;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--background);
+    color: var(--text);
+}
+
+
+/* -------------------------
+   Header
+------------------------- */
+
+header {
+    background: var(--primary);
+    color: white;
+    text-align: center;
+    padding: 25px 15px;
+}
+
+header h1 {
+    margin: 0;
+}
+
+header p {
+    margin-bottom: 0;
+}
+
+
+/* -------------------------
+   Main container
+------------------------- */
+
+main {
+    width: 90%;
+    max-width: 700px;
+    margin: 30px auto;
+}
+
+
+/* -------------------------
+   Form
+------------------------- */
+
+.task-form {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+button {
+    border: none;
+    border-radius: 6px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.input-group button {
+    background: var(--primary);
+    color: white;
+}
+
+.input-group button:hover {
+    background: var(--primary-dark);
+}
+
+
+/* -------------------------
+   Filters
+------------------------- */
+
+.filters {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.filter-btn {
+    background: white;
+    border: 1px solid var(--border);
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+
+/* -------------------------
+   Task list
+------------------------- */
+
+#taskList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task {
+    background: var(--white);
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 8px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.task-title {
+    flex: 1;
+}
+
+.task.completed .task-title {
+    text-decoration: line-through;
+    color: #777;
+}
+
+.edit-btn {
+    background: #f59e0b;
+    color: white;
+}
+
+.delete-btn {
+    background: var(--danger);
+    color: white;
+}
+
+
+/* -------------------------
+   Messages
+------------------------- */
+
+#formMessage {
+    margin-bottom: 0;
+    color: var(--danger);
+}
+
+#errorMessage {
+    color: var(--danger);
+}
+
+#loading {
+    text-align: center;
+}
+
+#taskCounter {
+    font-weight: bold;
+}
+
+
+/* -------------------------
+   Mobile responsive design
+------------------------- */
+
+@media (max-width: 500px) {
+
+    main {
+        width: 95%;
+        margin-top: 20px;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .input-group button {
+        width: 100%;
+    }
+
+    .filters {
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        flex: 1;
+    }
+
+    .task {
+        flex-wrap: wrap;
+    }
+
+    .task-title {
+        min-width: 150px;
+    }
+
+    .edit-btn,
+    .delete-btn {
+        padding: 8px 10px;
+    }
+}
