@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>TaskFlow - To-Do List</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<br>
+<body>
+
+    <header>
+        <h1>TaskFlow</h1>
+        <br>
+        <p>Simple task management</p>
+    </header>
+
+    <main>
+
+        <!-- Add Task Form -->
+        <section class="task-form">
+            <form id="taskForm">
+
+                <label for="taskInput">What needs to be done?</label>
+
+                <div class="input-group">
+                    <input
+                        type="text"
+                        id="taskInput"
+                        placeholder="Enter a task..."
+                        maxlength="100"
+                    >
+
+                    <button type="submit">Add</button>
+                </div>
+
+                <p id="formMessage"></p>
+
+            </form>
+        </section>
+
+        <!-- Filter Buttons -->
+        <section class="filters" aria-label="Task filters">
+
+            <button class="filter-btn active" data-filter="all">
+                All
+            </button>
+
+            <button class="filter-btn" data-filter="active">
+                Active
+            </button>
+
+            <button class="filter-btn" data-filter="completed">
+                Completed
+            </button>
+
+        </section>
+
+     
+        <!-- Error Message -->
+        <p id="errorMessage"></p>
+
+        <!-- Task List -->
+        <section>
+            <ul id="taskList"></ul>
+        </section>
+
+        <!-- Counter -->
+        <p id="taskCounter">0 tasks left</p>
+
+    </main>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
