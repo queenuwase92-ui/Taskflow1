@@ -7,7 +7,7 @@
     --white: #ffffff;
     --text: #222222;
     --border: #dddddd;
-    --danger: #dc2626;
+    --danger: #a92c2c;
     --success: #16a34a;
 }
 
@@ -153,7 +153,7 @@ button {
 }
 
 .edit-btn {
-    background: #0864a9;
+    background: #022138;
     color: white;
 }
 
