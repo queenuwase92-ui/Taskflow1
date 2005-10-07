@@ -1,8 +1,8 @@
 
 
 :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
+    --primary: #25b3eb;
+    --primary-dark: #1d3fd8;
     --background: #f4f6f8;
     --white: #ffffff;
     --text: #222222;
@@ -153,7 +153,7 @@ button {
 }
 
 .edit-btn {
-    background: #f59e0b;
+    background: #0864a9;
     color: white;
 }
 

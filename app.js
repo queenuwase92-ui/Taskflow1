@@ -1,3 +1,48 @@
+// ==========================================
+// TASKFLOW - FIREBASE JAVASCRIPT
+// ==========================================
+
+// Import Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+// Import Firestore
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    updateDoc,
+    deleteDoc,
+    doc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+
+// ==========================================
+// FIREBASE CONFIGURATION
+// ==========================================
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDdIETf6wAO_7nLY2C3GeFAuxKFKtzaOzU",
+    authDomain: "taskflow1-417b2.firebaseapp.com",
+    projectId: "taskflow1-417b2",
+    storageBucket: "taskflow1-417b2.firebasestorage.app",
+    messagingSenderId: "845687929925",
+    appId: "1:845687929925:web:54f40a5af755074ad3372c"
+};
+
+
+// Start Firebase
+const app = initializeApp(firebaseConfig);
+
+// Connect to Firestore
+const db = getFirestore(app);
+
+
+// ==========================================
+// GET HTML ELEMENTS
+// ==========================================
+
 const taskForm = document.getElementById("taskForm");
 const taskInput = document.getElementById("taskInput");
 const taskList = document.getElementById("taskList");
@@ -7,98 +52,166 @@ const errorMessage = document.getElementById("errorMessage");
 
 const filterButtons = document.querySelectorAll(".filter-btn");
 
-let tasks = [
-    {
-        id: 1,
-        title: "Learn JavaScript",
-        completed: false
-    },
-    {
-        id: 2,
-        title: "Finish TaskFlow project",
-        completed: true
-    }
-];
 
+// ==========================================
+// VARIABLES
+// ==========================================
 
-// This keeps track of the selected filter
+let tasks = [];
 let currentFilter = "all";
 
 
-// ========================================
-// DISPLAY TASKS WHEN PAGE LOADS
-// ========================================
+// ==========================================
+// LOAD TASKS WHEN PAGE OPENS
+// ==========================================
 
-renderTasks();
+loadTasks();
 
 
-// ========================================
-// ADD A TASK
-// ========================================
+// ==========================================
+// LOAD TASKS FROM FIRESTORE
+// ==========================================
 
-taskForm.addEventListener("submit", function(event) {
+async function loadTasks() {
 
-    // Stop the page from refreshing
+    try {
+
+        errorMessage.textContent = "";
+
+        const snapshot = await getDocs(
+            collection(db, "tasks")
+        );
+
+        tasks = [];
+
+        snapshot.forEach(function(documentSnapshot) {
+
+            tasks.push({
+                id: documentSnapshot.id,
+                ...documentSnapshot.data()
+            });
+
+        });
+
+
+        // Newest tasks first
+        tasks.sort(function(a, b) {
+
+            const timeA = a.createdAt
+                ? a.createdAt.toMillis()
+                : 0;
+
+            const timeB = b.createdAt
+                ? b.createdAt.toMillis()
+                : 0;
+
+            return timeB - timeA;
+
+        });
+
+
+        renderTasks();
+
+    }
+
+    catch (error) {
+
+        console.error("Error loading tasks:", error);
+
+        errorMessage.textContent =
+            "Could not load tasks from Firebase.";
+
+    }
+
+}
+
+
+// ==========================================
+// ADD TASK
+// ==========================================
+
+taskForm.addEventListener("submit", async function(event) {
+
     event.preventDefault();
 
 
-    // Get the text from the input
-    const title = taskInput.value.trim();
+    // Get task text
+    const title = String(taskInput.value || "").trim();
 
 
-    // Check if the input is empty
+    // Check empty task
     if (title === "") {
 
-        formMessage.textContent = "Please enter a task.";
+        formMessage.textContent =
+            "Please enter a task.";
 
         return;
+
     }
 
 
-    // Remove previous error message
+    // Check maximum length
+    if (title.length > 100) {
+
+        formMessage.textContent =
+            "Task must be 100 characters or less.";
+
+        return;
+
+    }
+
+
     formMessage.textContent = "";
+    errorMessage.textContent = "";
 
 
-    // Create a new task
-    const newTask = {
-        id: Date.now(),
-        title: title,
-        completed: false
-    };
+    try {
+
+        // Save task to Firestore
+        await addDoc(
+            collection(db, "tasks"),
+            {
+                title: title,
+                completed: false,
+                createdAt: serverTimestamp()
+            }
+        );
 
 
-    // Add task to the array
-    tasks.push(newTask);
+        // Clear input
+        taskInput.value = "";
 
 
-    // Clear the input
-    taskInput.value = "";
+        // Reload tasks
+        await loadTasks();
 
+    }
 
-    // Display tasks again
-    renderTasks();
+    catch (error) {
+
+        console.error("Error adding task:", error);
+
+        errorMessage.textContent =
+            "Could not add task.";
+
+    }
 
 });
 
 
-// ========================================
+// ==========================================
 // DISPLAY TASKS
-// ========================================
+// ==========================================
 
 function renderTasks() {
 
-    // Clear the current list
     taskList.innerHTML = "";
 
 
-    // Start with all tasks
     let filteredTasks = tasks;
 
 
-    // ====================================
-    // ACTIVE FILTER
-    // ====================================
-
+    // Active tasks
     if (currentFilter === "active") {
 
         filteredTasks = tasks.filter(function(task) {
@@ -110,10 +223,7 @@ function renderTasks() {
     }
 
 
-    // ====================================
-    // COMPLETED FILTER
-    // ====================================
-
+    // Completed tasks
     if (currentFilter === "completed") {
 
         filteredTasks = tasks.filter(function(task) {
@@ -125,19 +235,17 @@ function renderTasks() {
     }
 
 
-    // ====================================
-    // CREATE TASK ELEMENTS
-    // ====================================
-
+    // Create each task
     filteredTasks.forEach(function(task) {
 
-        // Create <li>
         const li = document.createElement("li");
 
         li.classList.add("task");
 
+        li.dataset.id = task.id;
 
-        // If task is completed
+
+        // Completed task
         if (task.completed === true) {
 
             li.classList.add("completed");
@@ -145,19 +253,12 @@ function renderTasks() {
         }
 
 
-        // Store task ID inside the <li>
-        li.dataset.id = task.id;
-
-
-        // ====================================
-        // CHECKBOX
-        // ====================================
-
+        // Checkbox
         const checkbox = document.createElement("input");
 
         checkbox.type = "checkbox";
 
-        checkbox.checked = task.completed;
+        checkbox.checked = task.completed === true;
 
         checkbox.setAttribute(
             "aria-label",
@@ -165,43 +266,35 @@ function renderTasks() {
         );
 
 
-        // ====================================
-        // TASK TITLE
-        // ====================================
-
+        // Task title
         const taskTitle = document.createElement("span");
 
         taskTitle.classList.add("task-title");
 
-        taskTitle.textContent = task.title;
+        taskTitle.textContent = task.title || "";
 
 
-        // ====================================
-        // EDIT BUTTON
-        // ====================================
-
+        // Edit button
         const editButton = document.createElement("button");
 
         editButton.classList.add("edit-btn");
 
+        editButton.type = "button";
+
         editButton.textContent = "Edit";
 
 
-        // ====================================
-        // DELETE BUTTON
-        // ====================================
-
+        // Delete button
         const deleteButton = document.createElement("button");
 
         deleteButton.classList.add("delete-btn");
 
+        deleteButton.type = "button";
+
         deleteButton.textContent = "Delete";
 
 
-        // ====================================
-        // ADD ELEMENTS TO <li>
-        // ====================================
-
+        // Add elements
         li.appendChild(checkbox);
 
         li.appendChild(taskTitle);
@@ -211,130 +304,197 @@ function renderTasks() {
         li.appendChild(deleteButton);
 
 
-        // Add <li> to the list
         taskList.appendChild(li);
 
     });
 
 
-    // Update number of tasks
     updateCounter();
 
 }
 
 
-// ========================================
+// ==========================================
 // COMPLETE / UNCOMPLETE TASK
-// ========================================
+// ==========================================
 
-taskList.addEventListener("change", function(event) {
+taskList.addEventListener("change", async function(event) {
 
-    // Check if the changed element is a checkbox
     if (event.target.type !== "checkbox") {
 
         return;
+
     }
 
 
-    // Find the task <li>
-    const taskElement = event.target.closest(".task");
-
-
-    // Get the task ID
-    const taskId = Number(taskElement.dataset.id);
-
-
-    // Find the task in the array
-    const task = tasks.find(function(task) {
-
-        return task.id === taskId;
-
-    });
-
-
-    // Change completed status
-    task.completed = event.target.checked;
-
-
-    // Display tasks again
-    renderTasks();
-
-});
-
-
-// ========================================
-// EDIT AND DELETE TASKS
-// ========================================
-
-taskList.addEventListener("click", function(event) {
-
-    // Find the task <li>
-    const taskElement = event.target.closest(".task");
+    const taskElement =
+        event.target.closest(".task");
 
 
     if (!taskElement) {
 
         return;
+
     }
 
 
-    // Get task ID
-    const taskId = Number(taskElement.dataset.id);
+    const taskId =
+        taskElement.dataset.id;
 
 
-    // Find task
-    const task = tasks.find(function(task) {
+    const completed =
+        event.target.checked;
 
-        return task.id === taskId;
+
+    try {
+
+        // Update Firestore
+        await updateDoc(
+            doc(db, "tasks", taskId),
+            {
+                completed: completed
+            }
+        );
+
+
+        // Update local task
+        const task = tasks.find(function(item) {
+
+            return item.id === taskId;
+
+        });
+
+
+        if (task) {
+
+            task.completed = completed;
+
+        }
+
+
+        renderTasks();
+
+    }
+
+    catch (error) {
+
+        console.error("Error updating task:", error);
+
+        errorMessage.textContent =
+            "Could not update task.";
+
+    }
+
+});
+
+
+// ==========================================
+// EDIT AND DELETE TASKS
+// ==========================================
+
+taskList.addEventListener("click", async function(event) {
+
+    const taskElement =
+        event.target.closest(".task");
+
+
+    if (!taskElement) {
+
+        return;
+
+    }
+
+
+    const taskId =
+        taskElement.dataset.id;
+
+
+    const task = tasks.find(function(item) {
+
+        return item.id === taskId;
 
     });
 
 
-    // ====================================
+    if (!task) {
+
+        return;
+
+    }
+
+
+    // ======================================
     // EDIT TASK
-    // ====================================
+    // ======================================
 
     if (event.target.classList.contains("edit-btn")) {
 
         const newTitle = prompt(
             "Edit your task:",
-            task.title
+            task.title || ""
         );
 
 
-        // User pressed Cancel
         if (newTitle === null) {
 
             return;
+
         }
 
 
-        // Remove extra spaces
-        const cleanTitle = newTitle.trim();
+        const cleanTitle =
+            newTitle.trim();
 
 
-        // Don't allow empty task
         if (cleanTitle === "") {
 
             alert("Task cannot be empty.");
 
             return;
+
         }
 
 
-        // Update task title
-        task.title = cleanTitle;
+        if (cleanTitle.length > 100) {
+
+            alert(
+                "Task must be 100 characters or less."
+            );
+
+            return;
+
+        }
 
 
-        // Display tasks again
-        renderTasks();
+        try {
+
+            await updateDoc(
+                doc(db, "tasks", taskId),
+                {
+                    title: cleanTitle
+                }
+            );
+
+
+            await loadTasks();
+
+        }
+
+        catch (error) {
+
+            console.error("Error editing task:", error);
+
+            errorMessage.textContent =
+                "Could not edit task.";
+
+        }
 
     }
 
 
-    // ====================================
+    // ======================================
     // DELETE TASK
-    // ====================================
+    // ======================================
 
     if (event.target.classList.contains("delete-btn")) {
 
@@ -346,38 +506,47 @@ taskList.addEventListener("click", function(event) {
         if (!confirmed) {
 
             return;
+
         }
 
 
-        // Remove task from array
-        tasks = tasks.filter(function(task) {
+        try {
 
-            return task.id !== taskId;
+            await deleteDoc(
+                doc(db, "tasks", taskId)
+            );
 
-        });
 
+            await loadTasks();
 
-        // Display tasks again
-        renderTasks();
+        }
+
+        catch (error) {
+
+            console.error("Error deleting task:", error);
+
+            errorMessage.textContent =
+                "Could not delete task.";
+
+        }
 
     }
 
 });
 
 
-// ========================================
+// ==========================================
 // FILTER BUTTONS
-// ========================================
+// ==========================================
 
 filterButtons.forEach(function(button) {
 
     button.addEventListener("click", function() {
 
-        // Get filter name
-        currentFilter = button.dataset.filter;
+        currentFilter =
+            button.dataset.filter;
 
 
-        // Remove active class from all buttons
         filterButtons.forEach(function(btn) {
 
             btn.classList.remove("active");
@@ -385,11 +554,9 @@ filterButtons.forEach(function(button) {
         });
 
 
-        // Highlight selected button
         button.classList.add("active");
 
 
-        // Display filtered tasks
         renderTasks();
 
     });
@@ -397,30 +564,32 @@ filterButtons.forEach(function(button) {
 });
 
 
-// ========================================
+// ==========================================
 // TASK COUNTER
-// ========================================
+// ==========================================
 
 function updateCounter() {
 
-    // Count tasks that are NOT completed
-    const remainingTasks = tasks.filter(function(task) {
+    const remainingTasks =
+        tasks.filter(function(task) {
 
-        return task.completed === false;
+            return task.completed !== true;
 
-    }).length;
+        }).length;
 
 
-    // Display correct text
     if (remainingTasks === 1) {
 
-        taskCounter.textContent = "1 task left";
+        taskCounter.textContent =
+            "1 task left";
 
-    } else {
+    }
+
+    else {
 
         taskCounter.textContent =
             remainingTasks + " tasks left";
 
     }
 
-  }
+}
